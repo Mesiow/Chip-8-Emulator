@@ -45,10 +45,18 @@ using word = unsigned short;
 class Chip8 {
 public:
 	Chip8();
-	void initialize();
 	void loadRom(const std::string& romFile);
 
 private:
+	word fetchOpcode();
+	void decodeAndExecute();
+	void incrementPC(byte length);
+	//execute opcodes under 0NNN
+	void execute0NNN(word instruction);
+	//execute opcodes 8XYN (N = 0 - E)
+	void execute8XYN();
+
+	void initialize();
 	void printRAM(int size);
 
 private:
@@ -62,7 +70,8 @@ private:
 	byte SP_; //stack pointer
 
 	byte ram_[0x1000]; //4kb ram
-
+	byte graphics_[64 * 32]; //2kb graphics, monochrome screen
+	byte keypad_[16];
 
 	//timers
 	byte delayTimer_;
