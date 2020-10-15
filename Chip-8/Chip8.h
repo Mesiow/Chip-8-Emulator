@@ -47,6 +47,8 @@ using word = unsigned short;
 
 */
 
+
+
 class Chip8 {
 public:
 	Chip8();
@@ -70,7 +72,7 @@ private:
 	void initialize();
 	//Audio setup
 	void initializeAudio();
-	//void audio_callback(void* userdata, byte* raw_buffer, int bytes);
+	static void audio_callback(void* userdata, byte* raw_buffer, int bytes);
 
 	//debugging
 	void printRAM(int size);
@@ -95,4 +97,6 @@ private:
 	//timers
 	byte delayTimer_;
 	byte soundTimer_;
+	SDL_AudioDeviceID device_;
 };
+
