@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 		printf("SDL FAILED TO INIT");
 
 	Chip8 c8;
-	c8.loadRom("Roms/Pong.ch8");
+	c8.loadRom("Roms/octo.ch8");
 
 	SDL_Window* window = SDL_CreateWindow("Chip-8", 128, 128, width * scale, height * scale, SDL_WINDOW_SHOWN);
 	if (!window) {
@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
 	auto lastCycleTime = std::chrono::high_resolution_clock::now();
 	while (running) {
 		while (SDL_PollEvent(&e)) {
+			c8.checkInput(e);
 			switch (e.type) {
 			case SDL_QUIT: running = false;
 			}

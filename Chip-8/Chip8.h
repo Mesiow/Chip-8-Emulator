@@ -54,6 +54,7 @@ public:
 	Chip8();
 	~Chip8();
 	void run();
+	void checkInput(SDL_Event &ev);
 	void loadRom(const std::string& romFile);
 	void debugRender();
 
