@@ -2,8 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include <cstdlib>
+#include <time.h>
 #include <fstream>
 #include <SDL.h>
+
+const int SAMPLE_RATE = 44100;
+const int AMPLITUDE = 28000;
 
 using byte = unsigned char;
 using word = unsigned short;
@@ -45,23 +50,35 @@ using word = unsigned short;
 class Chip8 {
 public:
 	Chip8();
+	~Chip8();
+	void run();
 	void loadRom(const std::string& romFile);
+	void debugRender();
 
 private:
 	word fetchOpcode();
 	void decodeAndExecute();
 	void incrementPC(byte length);
 	//execute opcodes under 0NNN
-	void execute0NNN(word instruction);
+	void execute0NNN(word opcode);
 	//execute opcodes 8XYN (N = 0 - E)
-	void execute8XYN();
+	void execute8XYN(word opcode);
+	//execute FX opcodes
+	void executeFX(word opcode);
 
+	//System Initialization
 	void initialize();
+	//Audio setup
+	void initializeAudio();
+	//void audio_callback(void* userdata, byte* raw_buffer, int bytes);
+
+	//debugging
 	void printRAM(int size);
 
 private:
 	//Data Registers
 	byte V_[16]; //V0 - VF, VF acts as a flag
+	byte X, Y; //register indexes
 	word stack_[16]; //up to 16 levels of nested subroutines
 	//address register I used for storing memory addresses 
 	//so only the lowest 12 bits are usually used
@@ -70,8 +87,10 @@ private:
 	byte SP_; //stack pointer
 
 	byte ram_[0x1000]; //4kb ram
-	byte graphics_[64 * 32]; //2kb graphics, monochrome screen
-	byte keypad_[16];
+public:
+	std::uint32_t graphics[64 * 32]; //2kb graphics, monochrome screen
+	byte keypad[16];
+private:
 
 	//timers
 	byte delayTimer_;
