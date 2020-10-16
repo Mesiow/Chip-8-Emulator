@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 		printf("SDL FAILED TO INIT");
 
 	Chip8 c8;
-	c8.loadRom("Roms/octo.ch8");
+	c8.loadRom("Roms/Breakout.ch8");
 
 	SDL_Window* window = SDL_CreateWindow("Chip-8", 128, 128, width * scale, height * scale, SDL_WINDOW_SHOWN);
 	if (!window) {

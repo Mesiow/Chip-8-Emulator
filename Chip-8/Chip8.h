@@ -7,6 +7,8 @@
 #include <fstream>
 #include <SDL.h>
 
+#define PI 3.14159265358979323846
+
 const int SAMPLE_RATE = 44100;
 const int AMPLITUDE = 28000;
 
@@ -47,6 +49,12 @@ using word = unsigned short;
 
 */
 
+struct Color {
+	std::uint32_t white = 0xFFFFFFFF;
+	std::uint32_t purple = 0xFFFF00FF;
+	std::uint32_t green = 0xFF00FF00;
+};
+
 
 
 class Chip8 {
@@ -73,7 +81,7 @@ private:
 	void initialize();
 	//Audio setup
 	void initializeAudio();
-	static void audio_callback(void* userdata, byte* raw_buffer, int bytes);
+	static void audio_callback(void* userdata, Uint8* raw_buffer, int bytes);
 
 	//debugging
 	void printRAM(int size);
@@ -91,6 +99,7 @@ private:
 
 	byte ram_[0x1000]; //4kb ram
 public:
+	Color pixelColor_; //color of the on pixels
 	std::uint32_t graphics[64 * 32]; //2kb graphics, monochrome screen
 	byte keypad[16];
 private:
@@ -98,6 +107,7 @@ private:
 	//timers
 	byte delayTimer_;
 	byte soundTimer_;
+	SDL_AudioSpec* audiospec_;
 	SDL_AudioDeviceID device_;
 };
 

@@ -1,6 +1,10 @@
 #include "Chip8.h"
 #include <iostream>
 
+double wave_position = 0;
+double wave_increment = 2 * PI * 1000 / SAMPLE_RATE;
+
+
 Chip8::Chip8()
 {
 	initialize();
@@ -8,6 +12,7 @@ Chip8::Chip8()
 
 Chip8::~Chip8()
 {
+	delete audiospec_;
 	SDL_CloseAudioDevice(device_);
 }
 
@@ -188,7 +193,7 @@ void Chip8::decodeAndExecute()
 						V_[0xF] = 0x1;
 					}
 					//xor with sprite pixel
-					*screenPixel ^= 0xFFFFFFFF;
+					*screenPixel ^= pixelColor_.green;
 					
 				}
 			}
@@ -239,10 +244,9 @@ void Chip8::decodeAndExecute()
 	if (soundTimer_ > 0) {
 		if (soundTimer_ == 1)
 		{
-			printf("beep ");
 			//play sound
 			SDL_PauseAudioDevice(device_, 0); //start playing sound
-			SDL_Delay(1000); //wait while sound is playing
+			SDL_Delay(100); //wait while sound is playing
 			SDL_PauseAudioDevice(device_, 1); //stop playing sound
 		}
 
@@ -519,59 +523,28 @@ void Chip8::initialize()
 
 void Chip8::initializeAudio()
 {
-	/*SDL_AudioSpec wantSpec, haveSpec;
+	audiospec_ = new SDL_AudioSpec();
+	audiospec_->freq = SAMPLE_RATE;
+	audiospec_->format = AUDIO_S8;
+	audiospec_->channels = 1;
+	audiospec_->samples = 4096;
+	audiospec_->callback = audio_callback;
 
-	SDL_zero(wantSpec);
-	int sample_nr = 0;
-	wantSpec.freq = SAMPLE_RATE;
-	wantSpec.format = AUDIO_S16SYS;
-	wantSpec.channels = 1;
-	wantSpec.samples = 2048;
-	wantSpec.callback = audio_callback;
-	wantSpec.userdata = &sample_nr;
+	device_ = SDL_OpenAudioDevice(NULL, 0, audiospec_, NULL, 0);
 
-	device_ = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &haveSpec, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
-	if (device_ == 0)
-	{
-		std::cout << "Failed to open audio: " << SDL_GetError() << std::endl;
-	}*/
-
-	if (SDL_Init(SDL_INIT_AUDIO) != 0)
-		std::cerr << "SDL Audio failed" << std::endl;
-
-	int sample_nr = 0;
-
-	SDL_AudioSpec want;
-	want.freq = SAMPLE_RATE; // number of samples per second
-	want.format = AUDIO_S8; // sample type (here: signed short i.e. 16 bit)
-	want.channels = 1; // only one channel
-	want.samples = 256; // buffer-size
-	want.callback = audio_callback; // function SDL calls periodically to refill the buffer
-	want.userdata = &sample_nr; // counter, keeping track of current sample number
-
-	SDL_AudioSpec have;
-	if (SDL_OpenAudio(&want, &have) != 0) SDL_LogError(SDL_LOG_CATEGORY_AUDIO, "Failed to open audio: %s", SDL_GetError());
-	if (want.format != have.format) SDL_LogError(SDL_LOG_CATEGORY_AUDIO, "Failed to get the desired AudioSpec");
-
+	if (!device_) {
+		std::cerr << "Failed to init audio device: " << SDL_GetError() << std::endl;
+	}
 }
 
+// Samples can vary between -127 and 128
+// Sine wave varies between -50 and 50
 void Chip8::audio_callback(void* userdata, Uint8* raw_buffer, int bytes)
 {
-	int beepSamples = 0;
-	Sint16* buffer = (Sint16*)raw_buffer;
-	int length = bytes; // 2 bytes per sample for AUDIO_S16SYS
-	int& sample_nr(*(int*)userdata);
-
-	for (int i = 0; i < length; i++, beepSamples++) {
-		if (beepSamples == 730) {
-			beepSamples = 0;
-			
-		}
-		buffer[i] = (Sint8)(127 * sin(sample_nr * M_PI * 2 * 604.1 / SAMPLE_RATE));
-		sample_nr++;
+	for (int i = 0; i < bytes; i++) {
+		raw_buffer[i] = 20 * sin(wave_position);
+		wave_position += wave_increment;
 	}
-	
-
 }
 
 void Chip8::loadRom(const std::string& romFile)
